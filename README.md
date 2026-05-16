@@ -8,8 +8,14 @@ git clone --recurse-submodules git@github.com:scottdmilner/cs231n-final-project.
 # install dependencies
 HOMEBREW_NO_AUTO_UPDATE=1 brew install boost c-blosc jemalloc ninja openexr tbb
 
+# patch dependencies
+bash scripts/patch-external.sh
+
 # download and build python packages
 uv sync
+
+# activate Python venv
+source .venv/bin/activate
 ```
 
 
