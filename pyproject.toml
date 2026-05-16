@@ -3,10 +3,17 @@ name = "final-project"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 dependencies = [
     "jupyterlab>=4.5.7",
     "matplotlib>=3.9.4",
     "numpy>=2.0.2",
+    "openvdb",
     "torch>=2.8.0",
 ]
+
+[tool.uv.workspace]
+members = ["external/openvdb"]
+
+[tool.uv.sources]
+openvdb = { workspace = true }

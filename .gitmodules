@@ -1,3 +1,4 @@
 [submodule "external/openvdb"]
 	path = external/openvdb
 	url = https://github.com/AcademySoftwareFoundation/openvdb.git
+	ignore = dirty

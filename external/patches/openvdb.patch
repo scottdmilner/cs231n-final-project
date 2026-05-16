@@ -1,0 +1,20 @@
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -30,15 +30,10 @@ slack = "https://slack.aswf.io/"
+ wheel.packages = []
+ 
+ [tool.scikit-build.cmake.define]
+-OPENVDB_CORE_STATIC="OFF"
++OPENVDB_CORE_SHARED="OFF"
+ USE_EXPLICIT_INSTANTIATION="OFF"
+ DISABLE_DEPENDENCY_VERSION_CHECKS="ON"
+ OPENVDB_USE_DELAYED_LOADING="OFF"
+ OPENVDB_BUILD_PYTHON_MODULE="ON"
+ USE_NUMPY="ON"
+ 
+-USE_NANOVDB="ON"
+-NANOVDB_USE_CUDA="ON"
+-NANOVDB_BUILD_PYTHON_MODULE="ON"
+-NANOVDB_USE_OPENVDB="ON"
+-
+-
