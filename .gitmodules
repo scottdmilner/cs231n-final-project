@@ -2,3 +2,6 @@
 	path = external/openvdb
 	url = https://github.com/AcademySoftwareFoundation/openvdb.git
 	ignore = dirty
+[submodule "external/cs248a-renderer"]
+	path = external/cs248a-renderer
+	url = git@github.com:scottdmilner/cs248-renderer.git

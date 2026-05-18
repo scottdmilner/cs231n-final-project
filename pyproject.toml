@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "cs248a-renderer",
     "jupyterlab>=4.5.7",
     "matplotlib>=3.9.4",
     "numpy>=2.0.2",
@@ -12,8 +13,6 @@ dependencies = [
     "torch>=2.8.0",
 ]
 
-[tool.uv.workspace]
-members = ["external/openvdb"]
-
 [tool.uv.sources]
-openvdb = { workspace = true }
+cs248a-renderer = { path = "external/cs248a-renderer/" }
+openvdb = { path = "external/openvdb" }
