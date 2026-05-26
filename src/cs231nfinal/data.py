@@ -14,18 +14,21 @@ class DatasetID(StrEnum):
     SMOKE_LOWRES = "smoke_lowres"
     SMOKE_MIDRES = "smoke_midres"
     SMOKE_HIGHRES = "smoke_highres"
+    TORUS = "torus"
 
 
 DATASET_RES = {
     DatasetID.SMOKE_LOWRES: (100, 100, 100),
     DatasetID.SMOKE_MIDRES: (400, 400, 400),
     DatasetID.SMOKE_HIGHRES: (1000, 1000, 1000),
+    DatasetID.TORUS: (20, 20, 20),
 }
 
 DATASET_VOXEL_SIZE = {
     DatasetID.SMOKE_LOWRES: 0.2,
     DatasetID.SMOKE_MIDRES: 0.05,
     DatasetID.SMOKE_HIGHRES: 0.02,
+    DatasetID.TORUS: 0.1,
 }
 
 
