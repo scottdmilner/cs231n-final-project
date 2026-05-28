@@ -1,0 +1,262 @@
+From 9e465d5bef265263b38aff3f786cfc16112e9649 Mon Sep 17 00:00:00 2001
+From: Scott Milner <scottdmilner@gmail.com>
+Date: Wed, 27 May 2026 17:31:45 -0700
+Subject: [PATCH] cuda -> mps
+
+---
+ diffusers_implementation/run_styleid_diffusers.py |  2 +-
+ diffusers_implementation/stable_diffusion.py      |  4 ++--
+ evaluation/eval_artfid.py                         | 12 ++++++------
+ evaluation/eval_histogan.py                       |  4 ++--
+ ldm/models/diffusion/ddim.py                      |  4 ++--
+ ldm/models/diffusion/plms.py                      |  4 ++--
+ ldm/modules/encoders/modules.py                   | 12 ++++++------
+ run_styleid.py                                    |  8 ++++----
+ 8 files changed, 25 insertions(+), 25 deletions(-)
+
+diff --git a/diffusers_implementation/run_styleid_diffusers.py b/diffusers_implementation/run_styleid_diffusers.py
+index 6505ae1..38ae1b2 100644
+--- a/diffusers_implementation/run_styleid_diffusers.py
++++ b/diffusers_implementation/run_styleid_diffusers.py
+@@ -224,7 +224,7 @@ if __name__ == "__main__":
+     
+     # options
+     ddim_steps = cfg.ddim_steps
+-    device = "cuda"
++    device = "mps"
+     dtype = torch.float16
+     in_c = 4
+     guidance_scale = 0. # no text
+diff --git a/diffusers_implementation/stable_diffusion.py b/diffusers_implementation/stable_diffusion.py
+index f01290b..9c8eafc 100644
+--- a/diffusers_implementation/stable_diffusion.py
++++ b/diffusers_implementation/stable_diffusion.py
+@@ -7,7 +7,7 @@ from diffusers import LMSDiscreteScheduler, DDIMScheduler
+ 
+ 
+ # From "https://huggingface.co/blog/stable_diffusion"
+-def load_stable_diffusion(sd_version='2.1', precision_t=torch.float32, device="cuda"):
++def load_stable_diffusion(sd_version='2.1', precision_t=torch.float32, device="mps"):
+     if sd_version == '2.1':
+         model_key = "stabilityai/stable-diffusion-2-1"
+     elif sd_version == '2.1-base':
+@@ -53,7 +53,7 @@ def encode_latent(images, vae):
+     latents = 0.18215 * latents
+     return latents
+ 
+-def get_text_embedding(text, text_encoder, tokenizer, device="cuda"):
++def get_text_embedding(text, text_encoder, tokenizer, device="mps"):
+     # TODO currently, hard-coding for stable diffusion
+     with torch.no_grad():
+ 
+diff --git a/evaluation/eval_artfid.py b/evaluation/eval_artfid.py
+index ab1e42f..ac43fa4 100644
+--- a/evaluation/eval_artfid.py
++++ b/evaluation/eval_artfid.py
+@@ -180,7 +180,7 @@ def compute_fid(path_to_stylized, path_to_style, batch_size, device, num_workers
+     Returns:
+         (float) FID value.
+     """
+-    device = torch.device('cuda') if device == 'cuda' and torch.cuda.is_available() else torch.device('cpu')
++    device = torch.device("mps")
+ 
+     ckpt_file = utils.download(CKPT_URL)
+     ckpt = torch.load(ckpt_file, map_location=device)
+@@ -213,7 +213,7 @@ def compute_fid_infinity(path_to_stylized, path_to_style, batch_size, device, nu
+     Returns:
+         (float) FID infinity value.
+     """
+-    device = torch.device('cuda') if device == 'cuda' and torch.cuda.is_available() else torch.device('cpu')
++    device = torch.device('mps')
+ 
+     ckpt_file = utils.download(CKPT_URL)
+     ckpt = torch.load(ckpt_file, map_location=device)
+@@ -256,7 +256,7 @@ def compute_fid_infinity(path_to_stylized, path_to_style, batch_size, device, nu
+     return fid_infinity
+ 
+ 
+-def compute_content_distance(path_to_stylized, path_to_content, batch_size, content_metric='lpips', device='cuda', num_workers=1, gray=False):
++def compute_content_distance(path_to_stylized, path_to_content, batch_size, content_metric='lpips', device='mps', num_workers=1, gray=False):
+     """Computes the distance for the given paths.
+ 
+     Args:
+@@ -270,7 +270,7 @@ def compute_content_distance(path_to_stylized, path_to_content, batch_size, cont
+     Returns:
+         (float) FID value.
+     """
+-    device = torch.device('cuda') if device == 'cuda' and torch.cuda.is_available() else torch.device('cpu')
++    device = torch.device('mps')
+ 
+     # Sort paths in order to match up the stylized images with the corresponding content image
+     stylized_image_paths = get_image_paths(path_to_stylized, sort=True)
+@@ -339,7 +339,7 @@ def compute_patch_simi(path_to_stylized, path_to_content, batch_size, device, nu
+     Returns:
+         (float) FID value.
+     """
+-    device = torch.device('cuda') if device == 'cuda' and torch.cuda.is_available() else torch.device('cpu')
++    device = torch.device('mps')
+ 
+     # Sort paths in order to match up the stylized images with the corresponding content image
+     stylized_image_paths = get_image_paths(path_to_stylized, sort=True)
+@@ -442,7 +442,7 @@ def main():
+     parser.add_argument('--num_workers', type=int, default=8, help='Number of threads used for data loading.')
+     parser.add_argument('--content_metric', type=str, default='lpips', choices=['lpips', 'vgg', 'alexnet', 'ssim', 'ms-ssim'], help='Content distance.')
+     parser.add_argument('--mode', type=str, default='art_fid_inf', choices=['art_fid', 'art_fid_inf'], help='Evaluate ArtFID or ArtFID_infinity.')
+-    parser.add_argument('--device', type=str, default='cuda', choices=['cuda', 'cpu'], help='Device to use.')
++    parser.add_argument('--device', type=str, default='mps', choices=['mps', 'cpu'], help='Device to use.')
+     parser.add_argument('--sty', type=str, required=True, help='Path to style images.')
+     parser.add_argument('--cnt', type=str, required=True, help='Path to content images.')
+     parser.add_argument('--tar', type=str, required=True, help='Path to stylized images.')
+diff --git a/evaluation/eval_histogan.py b/evaluation/eval_histogan.py
+index ae43ff9..8cd06a1 100755
+--- a/evaluation/eval_histogan.py
++++ b/evaluation/eval_histogan.py
+@@ -31,7 +31,7 @@ EPS = 1e-6
+ class RGBuvHistBlock(nn.Module):
+   def __init__(self, h=64, insz=150, resizing='interpolation',
+                method='inverse-quadratic', sigma=0.02, intensity_scale=True,
+-               device='cuda'):
++               device='mps'):
+     """ Computes the RGB-uv histogram feature of a given image.
+     Args:
+       h: histogram dimension size (scalar). The default value is 64.
+@@ -212,7 +212,7 @@ class RGBuvHistBlock(nn.Module):
+ 
+     return hists_normalized
+ 
+-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
++device = torch.device('mps')
+ 
+ loader = transforms.Compose(
+     [transforms.ToTensor()])  # transform it into a torch tensor
+diff --git a/ldm/models/diffusion/ddim.py b/ldm/models/diffusion/ddim.py
+index d88fafc..2ff362e 100755
+--- a/ldm/models/diffusion/ddim.py
++++ b/ldm/models/diffusion/ddim.py
+@@ -18,8 +18,8 @@ class DDIMSampler(object):
+ 
+     def register_buffer(self, name, attr):
+         if type(attr) == torch.Tensor:
+-            if attr.device != torch.device("cuda"):
+-                attr = attr.to(torch.device("cuda"))
++            if attr.device != torch.device("mps"):
++                attr = attr.type(torch.float32).to(torch.device("mps"))
+         setattr(self, name, attr)
+ 
+     def make_schedule(self, ddim_num_steps, ddim_discretize="uniform", ddim_eta=0., verbose=True, strength = 1.):
+diff --git a/ldm/models/diffusion/plms.py b/ldm/models/diffusion/plms.py
+index 78eeb10..12df9cd 100755
+--- a/ldm/models/diffusion/plms.py
++++ b/ldm/models/diffusion/plms.py
+@@ -17,8 +17,8 @@ class PLMSSampler(object):
+ 
+     def register_buffer(self, name, attr):
+         if type(attr) == torch.Tensor:
+-            if attr.device != torch.device("cuda"):
+-                attr = attr.to(torch.device("cuda"))
++            if attr.device != torch.device("mps"):
++                attr = attr.to(torch.device("mps"))
+         setattr(self, name, attr)
+ 
+     def make_schedule(self, ddim_num_steps, ddim_discretize="uniform", ddim_eta=0., verbose=True):
+diff --git a/ldm/modules/encoders/modules.py b/ldm/modules/encoders/modules.py
+index ededbe4..2c2ae1a 100755
+--- a/ldm/modules/encoders/modules.py
++++ b/ldm/modules/encoders/modules.py
+@@ -35,7 +35,7 @@ class ClassEmbedder(nn.Module):
+ 
+ class TransformerEmbedder(AbstractEncoder):
+     """Some transformer encoder layers"""
+-    def __init__(self, n_embed, n_layer, vocab_size, max_seq_len=77, device="cuda"):
++    def __init__(self, n_embed, n_layer, vocab_size, max_seq_len=77, device="mps"):
+         super().__init__()
+         self.device = device
+         self.transformer = TransformerWrapper(num_tokens=vocab_size, max_seq_len=max_seq_len,
+@@ -52,7 +52,7 @@ class TransformerEmbedder(AbstractEncoder):
+ 
+ class BERTTokenizer(AbstractEncoder):
+     """ Uses a pretrained BERT tokenizer by huggingface. Vocab size: 30522 (?)"""
+-    def __init__(self, device="cuda", vq_interface=True, max_length=77):
++    def __init__(self, device="mps", vq_interface=True, max_length=77):
+         super().__init__()
+         from transformers import BertTokenizerFast  # TODO: add to reuquirements
+         self.tokenizer = BertTokenizerFast.from_pretrained("bert-base-uncased")
+@@ -80,7 +80,7 @@ class BERTTokenizer(AbstractEncoder):
+ class BERTEmbedder(AbstractEncoder):
+     """Uses the BERT tokenizr model and add some transformer encoder layers"""
+     def __init__(self, n_embed, n_layer, vocab_size=30522, max_seq_len=77,
+-                 device="cuda",use_tokenizer=True, embedding_dropout=0.0):
++                 device="mps",use_tokenizer=True, embedding_dropout=0.0):
+         super().__init__()
+         self.use_tknz_fn = use_tokenizer
+         if self.use_tknz_fn:
+@@ -136,7 +136,7 @@ class SpatialRescaler(nn.Module):
+ 
+ class FrozenCLIPEmbedder(AbstractEncoder):
+     """Uses the CLIP transformer encoder for text (from Hugging Face)"""
+-    def __init__(self, version="openai/clip-vit-large-patch14", device="cuda", max_length=77):
++    def __init__(self, version="openai/clip-vit-large-patch14", device="mps", max_length=77):
+         super().__init__()
+         self.tokenizer = CLIPTokenizer.from_pretrained(version)
+         self.transformer = CLIPTextModel.from_pretrained(version)
+@@ -166,7 +166,7 @@ class FrozenCLIPTextEmbedder(nn.Module):
+     """
+     Uses the CLIP transformer encoder for text.
+     """
+-    def __init__(self, version='ViT-L/14', device="cuda", max_length=77, n_repeat=1, normalize=True):
++    def __init__(self, version='ViT-L/14', device="mps", max_length=77, n_repeat=1, normalize=True):
+         super().__init__()
+         self.model, _ = clip.load(version, jit=False, device="cpu")
+         self.device = device
+@@ -202,7 +202,7 @@ class FrozenClipImageEmbedder(nn.Module):
+             self,
+             model,
+             jit=False,
+-            device='cuda' if torch.cuda.is_available() else 'cpu',
++            device='mps',
+             antialias=False,
+         ):
+         super().__init__()
+diff --git a/run_styleid.py b/run_styleid.py
+index 7327fdc..c26be05 100755
+--- a/run_styleid.py
++++ b/run_styleid.py
+@@ -72,7 +72,7 @@ def adain(cnt_feat, sty_feat):
+ 
+ def load_model_from_config(config, ckpt, verbose=False):
+     print(f"Loading model from {ckpt}")
+-    pl_sd = torch.load(ckpt, map_location="cpu")
++    pl_sd = torch.load(ckpt, map_location="cpu", weights_only=False)
+     if "global_step" in pl_sd:
+         print(f"Global Step: {pl_sd['global_step']}")
+     sd = pl_sd["state_dict"]
+@@ -85,7 +85,7 @@ def load_model_from_config(config, ckpt, verbose=False):
+         print("unexpected keys:")
+         print(u)
+ 
+-    model.cuda()
++    model.to("mps")
+     model.eval()
+     return model
+ 
+@@ -128,7 +128,7 @@ def main():
+     ddim_inversion_steps = opt.ddim_inv_steps
+     save_feature_timesteps = ddim_steps = opt.save_feat_steps
+ 
+-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
++    device = torch.device("mps")
+     model = model.to(device)
+     unet_model = model.model.diffusion_model
+     sampler = DDIMSampler(model)
+@@ -227,7 +227,7 @@ def main():
+                 cnt_z_enc = feat_maps[0]['z_enc']
+ 
+             with torch.no_grad():
+-                with precision_scope("cuda"):
++                with precision_scope("mps"):
+                     with model.ema_scope():
+                         # inversion
+                         output_name = f"{os.path.basename(cnt_name).split('.')[0]}_stylized_{os.path.basename(sty_name).split('.')[0]}.png"
+-- 
+2.50.1 (Apple Git-155)
+

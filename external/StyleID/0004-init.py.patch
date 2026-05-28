@@ -1,0 +1,24 @@
+From 2f9e5fc5248eb8f4eb3c4b0c79bb79224007ef64 Mon Sep 17 00:00:00 2001
+From: Scott Milner <scottdmilner@gmail.com>
+Date: Wed, 27 May 2026 20:40:55 -0700
+Subject: [PATCH] init.py
+
+---
+ __init__.py | 5 +++++
+ 1 file changed, 5 insertions(+)
+ create mode 100644 __init__.py
+
+diff --git a/__init__.py b/__init__.py
+new file mode 100644
+index 0000000..67386a0
+--- /dev/null
++++ b/__init__.py
+@@ -0,0 +1,5 @@
++import sys
++from pathlib import Path
++
++# add internal packages to the Path
++sys.path.append(str(Path(__file__).parent))
+-- 
+2.50.1 (Apple Git-155)
+

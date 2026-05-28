@@ -1,0 +1,34 @@
+From 12478e1258f72cba427a6f6acdfe7d4f3612c551 Mon Sep 17 00:00:00 2001
+From: Scott Milner <scottdmilner@gmail.com>
+Date: Wed, 27 May 2026 20:28:21 -0700
+Subject: [PATCH] fix args
+
+---
+ run_styleid.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/run_styleid.py b/run_styleid.py
+index 7327fdc..a2fede1 100755
+--- a/run_styleid.py
++++ b/run_styleid.py
+@@ -89,7 +89,7 @@ def load_model_from_config(config, ckpt, verbose=False):
+     model.eval()
+     return model
+ 
+-def main():
++def main(args):
+     parser = argparse.ArgumentParser()
+     parser.add_argument('--cnt', default = './data/cnt')
+     parser.add_argument('--sty', default = './data/sty')
+@@ -111,7 +111,7 @@ def main():
+     parser.add_argument('--output_path', type=str, default='output')
+     parser.add_argument("--without_init_adain", action='store_true')
+     parser.add_argument("--without_attn_injection", action='store_true')
+-    opt = parser.parse_args()
++    opt = parser.parse_args(args)
+ 
+     feat_path_root = opt.precomputed
+ 
+-- 
+2.50.1 (Apple Git-155)
+
