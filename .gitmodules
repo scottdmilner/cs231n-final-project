@@ -1,5 +1,5 @@
 [submodule "external/openvdb"]
-	path = external/openvdb
+	path = external/openvdb/openvdb
 	url = https://github.com/AcademySoftwareFoundation/openvdb.git
 	ignore = dirty
 [submodule "external/cs248a-renderer"]

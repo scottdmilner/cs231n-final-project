@@ -1,0 +1,1 @@
+This `pyproject.toml` is a copy of `openvdb/pyproject.toml` with modified CMake flags and a hatchling hookscript to add a patch for Python bindings.

@@ -5,11 +5,8 @@
 # Clone the repo
 git clone --recurse-submodules git@github.com:scottdmilner/cs231n-final-project.git
 
-# install dependencies
+# install OpenVDB build dependencies
 HOMEBREW_NO_AUTO_UPDATE=1 brew install boost c-blosc jemalloc ninja openexr tbb
-
-# patch dependencies
-bash scripts/patch-external.sh
 
 # download and build python packages
 uv sync
@@ -19,4 +16,4 @@ source .venv/bin/activate
 ```
 
 
-Running `uv sync` will build OpenVDB with Python bindings and install all project Python dependencies into `.venv`. The OpenVDB build may have other dependencies you need to install in order to get a successful sync.
+Running `uv sync` will build all external packages with their Python bindings and install all project Python dependencies into `.venv`. The OpenVDB build may have other dependencies you need to install in order to get a successful sync.
