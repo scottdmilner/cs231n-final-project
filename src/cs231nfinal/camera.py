@@ -17,7 +17,7 @@ def RandomCameraTransform(
     kappa: float = np.inf,
     seed: int | None = None,
 ) -> Iterator[mat4]:
-    vmf = vonmises_fisher(mu=(-1,0,0), kappa=kappa)
+    vmf = vonmises_fisher(mu=(-1, 0, 0), kappa=kappa)
     rng = np.random.default_rng(seed=seed)
 
     while True:
