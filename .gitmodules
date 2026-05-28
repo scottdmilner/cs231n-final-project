@@ -6,5 +6,8 @@
 	path = external/cs248a-renderer
 	url = git@github.com:scottdmilner/cs248-renderer.git
 [submodule "external/StyleID/src"]
-	path = external/StyleID/src/StyleID
+	path = external/StyleID/StyleID-git
 	url = https://github.com/jiwoogit/StyleID.git
+[submodule "external/taming/taming-transformers"]
+	path = external/taming/taming-transformers
+	url = https://github.com/CompVis/taming-transformers.git
