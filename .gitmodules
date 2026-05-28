@@ -5,3 +5,6 @@
 [submodule "external/cs248a-renderer"]
 	path = external/cs248a-renderer
 	url = git@github.com:scottdmilner/cs248-renderer.git
+[submodule "external/StyleID/src"]
+	path = external/StyleID/src/StyleID
+	url = https://github.com/jiwoogit/StyleID.git
