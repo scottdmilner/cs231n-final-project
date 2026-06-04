@@ -8,37 +8,123 @@ from torchvision.transforms import Resize, Grayscale
 class Stylizer(ABC):
     _res: tuple[int, int]
 
-    def __init__(self, resolution: tuple[int, int]) -> None:
+    def __init__(self, resolution: tuple[int, int], device="mps") -> None:
         self._res = resolution
+        self._device = device
         super().__init__()
 
     @abstractmethod
     def style(self, camera_views: torch.Tensor) -> torch.Tensor:
         pass
 
+    def loss(self, render_stack: torch.Tensor, mask_stack: torch.Tensor) -> torch.Tensor:
+        loss_fn = torch.nn.MSELoss()
+        render_stack_channels = render_stack[:,torch.newaxis,:,:].repeat((1,3,1,1)).detach()
+        
+        style = self.style(render_stack_channels.to(self._device)).cpu().mean(1, keepdim=True) # mean over color
+
+        # style_mask = 1 - mask_stack
+        # masked_style = style * style_mask + (1 - style_mask.to(torch.float32))
+
+        # plt.imshow(style[0].permute((1,2,0)).to(torch.float32))
+        # plt.show()
+
+        style_loss = loss_fn(render_stack, style)# + tv_loss
+        return style_loss
+
 
 class NaiveStylizer(Stylizer):
     _style_image: torch.Tensor
 
     def __init__(
-        self, resolution: tuple[int, int], image_path: str, invert: bool = False
+        self, resolution: tuple[int, int], image_path: str, invert: bool = False, device="mps"
     ) -> None:
         resize_T = Resize(resolution)
         grayscale_T = Grayscale()
         self._style_image = grayscale_T(
             resize_T(read_image(image_path) / 255)
-        ).squeeze()
+        ).squeeze().to(device)
 
         if invert:
             self._style_image = 1 - self._style_image
 
-        super().__init__(resolution)
+        super().__init__(resolution, device)
 
     def style(self, camera_views: torch.Tensor) -> torch.Tensor:
         style_mask = camera_views < (1.0 - 1e-6)
         return self._style_image.detach().clone() * style_mask + (
             1 - style_mask.to(torch.float32)
         )
+
+
+from gatys import VGG, GramMatrix, GramMSELoss, GATYS_VGG_WEIGHTS
+from PIL import Image
+from torchvision import transforms
+
+
+postpa = transforms.Compose([
+    transforms.Lambda(lambda x: x.mul_(1./255)),
+    transforms.Normalize(
+        mean=[-0.40760392, -0.45795686, -0.48501961], #add imagenet mean
+        std=[1,1,1]
+    ),
+    transforms.Lambda(lambda x: x[torch.LongTensor([2,1,0])]), #turn to RGB
+])
+class GatysStylizer(Stylizer):
+    def _prep(self, img: torch.Tensor):
+        t = transforms.Compose([
+            transforms.Resize(self._res),
+            transforms.Lambda(lambda x: x[torch.LongTensor([2,1,0])]), #turn to BGR
+            transforms.Normalize(mean=[0.40760392, 0.45795686, 0.48501961], #subtract imagenet mean
+                                std=[1,1,1]),
+            transforms.Lambda(lambda x: x.mul_(255)),
+        ])
+        return t(img).unsqueeze(0)
+    
+    def _postp(self, img: torch.Tensor):
+        t = postpa(img)
+        t[t>1] = 1    
+        t[t<0] = 0
+        return t
+    
+    def __init__(self, resolution: tuple[int, int], image_path: str, device) -> None:
+        super().__init__(resolution, device)
+
+        self.vgg = VGG()
+        self.vgg.load_state_dict(torch.load(GATYS_VGG_WEIGHTS))
+
+        for param in self.vgg.parameters():
+            param.requires_grad = False
+
+        self.vgg.to(device)
+
+        self.style_image = self._prep(transforms.ToTensor()(Image.open(image_path))).to(self._device)
+
+        #define layers, loss functions, weights and compute optimization targets
+        self.style_layers = ['r11','r21','r31','r41', 'r51'] 
+        # self.content_layers = ['r42']
+        self.loss_layers = self.style_layers # + self.content_layers
+        loss_fns = [GramMSELoss()] * len(self.style_layers) # + [nn.MSELoss()] * len(self.content_layers)
+        self.loss_fns = [loss_fn.to(self._device) for loss_fn in loss_fns]
+
+        #these are good weights settings:
+        style_weights = [1e3/n**2 for n in [64,128,256,512,512]]
+        # content_weights = [1e0]
+        self.weights = style_weights # + content_weights
+
+        #compute optimization targets
+        style_targets = [GramMatrix()(A).detach() for A in self.vgg(self.style_image, self.style_layers)]
+        self.targets = style_targets
+
+    def style(self, camera_views: torch.Tensor) -> torch.Tensor:
+        pass
+
+    def loss(self, render_stack: torch.Tensor, mask_stack: torch.Tensor) -> torch.Tensor:
+        render_stack_channels = render_stack.unsqueeze(1).repeat((1,3,1,1)).to(self._device)
+        out = self.vgg(render_stack_channels, self.loss_layers)
+        layer_losses = torch.stack([self.weights[a] * self.loss_fns[a](A, self.targets[a]) for a,A in enumerate(out)])
+
+        return layer_losses.sum()
 
 
 import StyleID
