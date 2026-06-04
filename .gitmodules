@@ -11,3 +11,6 @@
 [submodule "external/taming/taming-transformers"]
 	path = external/taming/taming-transformers
 	url = https://github.com/CompVis/taming-transformers.git
+[submodule "external/gatys/gatys-nst"]
+	path = external/gatys/gatys-src
+	url = https://github.com/leongatys/PytorchNeuralStyleTransfer.git

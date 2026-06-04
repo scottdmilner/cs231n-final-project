@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "cs248a-renderer",
     "diffusers>=0.37.1",
+    "gatys",
     "ipywidgets>=8.1.8",
     "jupyter>=1.1.1",
     "numpy>=2.0.2",
@@ -19,6 +20,7 @@ dependencies = [
 
 [tool.uv.sources]
 cs248a-renderer = { path = "external/cs248a-renderer/" }
+gatys = { workspace = true }
 openvdb = { path = "external/openvdb" }
 StyleID = { workspace = true }
 
@@ -26,6 +28,7 @@ StyleID = { workspace = true }
 members = [
     "external/StyleID",
     "external/taming",
+    "external/gatys",
 ]
 
 [build-system]
