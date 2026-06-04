@@ -14,3 +14,6 @@
 [submodule "external/gatys/gatys-nst"]
 	path = external/gatys/gatys-src
 	url = https://github.com/leongatys/PytorchNeuralStyleTransfer.git
+[submodule "external/aespa/AesPA-Net-git"]
+	path = external/aespa/AesPA_Net
+	url = https://github.com/Kibeom-Hong/AesPA-Net.git

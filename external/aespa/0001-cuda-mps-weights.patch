@@ -1,0 +1,750 @@
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..61f654f
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,2 @@
++*.pth
++__pycache__
+diff --git a/__init__.py b/__init__.py
+new file mode 100644
+index 0000000..67386a0
+--- /dev/null
++++ b/__init__.py
+@@ -0,0 +1,5 @@
++import sys
++from pathlib import Path
++
++# add internal packages to the Path
++sys.path.append(str(Path(__file__).parent))
+diff --git a/aespanet_models.py b/aespanet_models.py
+index 7aba60f..e72a5ee 100644
+--- a/aespanet_models.py
++++ b/aespanet_models.py
+@@ -57,14 +57,15 @@ def mean_variance_norm(feat):
+ 
+ 
+ class Noise(nn.Module):
+-	def __init__(self, use_noise, sigma=0.2):
++	def __init__(self, use_noise, sigma=0.2, device="cpu"):
+ 		super(Noise, self).__init__()
+ 		self.use_noise = use_noise
+ 		self.sigma = sigma
++		self.device = device
+ 
+ 	def forward(self, x):
+ 		if self.use_noise:
+-			return x + self.sigma * torch.autograd.Variable(torch.cuda.FloatTensor(x.size()).normal_(), requires_grad=False)
++			return x + self.sigma * torch.autograd.Variable(torch.FloatTensor(x.size()).to(self.device).normal_(), requires_grad=False)
+ 		else:
+ 			return x
+ 
+@@ -315,7 +316,7 @@ class AdaptiveMultiAttn_Transformer_v2(nn.Module):
+ 
+ 
+ class VGGEncoder(nn.Module):
+-	def __init__(self, vgg):
++	def __init__(self, vgg_state_dict):
+ 		super(VGGEncoder, self).__init__()
+ 
+ 		self.pad = nn.ReflectionPad2d(1)
+@@ -328,66 +329,66 @@ class VGGEncoder(nn.Module):
+ 
+ 		###Level0###
+ 		self.conv0 = nn.Conv2d(3, 3, 1, 1, 0)
+-		self.conv0.weight = nn.Parameter(torch.FloatTensor(vgg.modules[0].weight))
+-		self.conv0.bias = nn.Parameter(torch.FloatTensor(vgg.modules[0].bias))
++		self.conv0.weight = nn.Parameter(vgg_state_dict['0.weight'])
++		self.conv0.bias = nn.Parameter(vgg_state_dict['0.bias'])
+ 
+ 		###Level1###
+ 		self.conv1_1 = nn.Conv2d(3, 64, 3, 1, 0)
+-		self.conv1_1.weight = nn.Parameter(torch.FloatTensor(vgg.modules[2].weight))
+-		self.conv1_1.bias = nn.Parameter(torch.FloatTensor(vgg.modules[2].bias))
++		self.conv1_1.weight = nn.Parameter(vgg_state_dict['2.weight'])
++		self.conv1_1.bias = nn.Parameter(vgg_state_dict['2.bias'])
+ 		
+ 		self.conv1_2 = nn.Conv2d(64, 64, 3, 1, 0)
+-		self.conv1_2.weight = nn.Parameter(torch.FloatTensor(vgg.modules[5].weight))
+-		self.conv1_2.bias = nn.Parameter(torch.FloatTensor(vgg.modules[5].bias))
++		self.conv1_2.weight = nn.Parameter(vgg_state_dict['5.weight'])
++		self.conv1_2.bias = nn.Parameter(vgg_state_dict['5.bias'])
+ 		
+ 		###Level2###
+ 		self.conv2_1 = nn.Conv2d(64, 128, 3, 1, 0)
+-		self.conv2_1.weight = nn.Parameter(torch.FloatTensor(vgg.modules[9].weight))
+-		self.conv2_1.bias = nn.Parameter(torch.FloatTensor(vgg.modules[9].bias))
++		self.conv2_1.weight = nn.Parameter(vgg_state_dict['9.weight'])
++		self.conv2_1.bias = nn.Parameter(vgg_state_dict['9.bias'])
+ 		
+ 		self.conv2_2 = nn.Conv2d(128, 128, 3, 1, 0)
+-		self.conv2_2.weight = nn.Parameter(torch.FloatTensor(vgg.modules[12].weight))
+-		self.conv2_2.bias = nn.Parameter(torch.FloatTensor(vgg.modules[12].bias))
++		self.conv2_2.weight = nn.Parameter(vgg_state_dict['12.weight'])
++		self.conv2_2.bias = nn.Parameter(vgg_state_dict['12.bias'])
+ 		
+ 		###Level3###
+ 		self.conv3_1 = nn.Conv2d(128, 256, 3, 1, 0)
+-		self.conv3_1.weight = nn.Parameter(torch.FloatTensor(vgg.modules[16].weight))
+-		self.conv3_1.bias = nn.Parameter(torch.FloatTensor(vgg.modules[16].bias))
++		self.conv3_1.weight = nn.Parameter(vgg_state_dict['16.weight'])
++		self.conv3_1.bias = nn.Parameter(vgg_state_dict['16.bias'])
+ 
+ 		self.conv3_2 = nn.Conv2d(256, 256, 3, 1, 0)
+-		self.conv3_2.weight = nn.Parameter(torch.FloatTensor(vgg.modules[19].weight))
+-		self.conv3_2.bias = nn.Parameter(torch.FloatTensor(vgg.modules[19].bias))
++		self.conv3_2.weight = nn.Parameter(vgg_state_dict['19.weight'])
++		self.conv3_2.bias = nn.Parameter(vgg_state_dict['19.bias'])
+ 
+ 		self.conv3_3 = nn.Conv2d(256, 256, 3, 1, 0)
+-		self.conv3_3.weight = nn.Parameter(torch.FloatTensor(vgg.modules[22].weight))
+-		self.conv3_3.bias = nn.Parameter(torch.FloatTensor(vgg.modules[22].bias))
++		self.conv3_3.weight = nn.Parameter(vgg_state_dict['22.weight'])
++		self.conv3_3.bias = nn.Parameter(vgg_state_dict['22.bias'])
+ 
+ 		self.conv3_4 = nn.Conv2d(256, 256, 3, 1, 0)
+-		self.conv3_4.weight = nn.Parameter(torch.FloatTensor(vgg.modules[25].weight))
+-		self.conv3_4.bias = nn.Parameter(torch.FloatTensor(vgg.modules[25].bias))
++		self.conv3_4.weight = nn.Parameter(vgg_state_dict['25.weight'])
++		self.conv3_4.bias = nn.Parameter(vgg_state_dict['25.bias'])
+ 
+ 		
+ 		###Level4###
+ 		self.conv4_1 = nn.Conv2d(256, 512, 3, 1, 0)
+-		self.conv4_1.weight = nn.Parameter(torch.FloatTensor(vgg.modules[29].weight))
+-		self.conv4_1.bias = nn.Parameter(torch.FloatTensor(vgg.modules[29].bias))
++		self.conv4_1.weight = nn.Parameter(vgg_state_dict['29.weight'])
++		self.conv4_1.bias = nn.Parameter(vgg_state_dict['29.bias'])
+ 
+ 		self.conv4_2 = nn.Conv2d(512, 512, 3, 1, 0)
+-		self.conv4_2.weight = nn.Parameter(torch.FloatTensor(vgg.modules[32].weight))
+-		self.conv4_2.bias = nn.Parameter(torch.FloatTensor(vgg.modules[32].bias))
++		self.conv4_2.weight = nn.Parameter(vgg_state_dict['32.weight'])
++		self.conv4_2.bias = nn.Parameter(vgg_state_dict['32.bias'])
+ 
+ 		self.conv4_3 = nn.Conv2d(512, 512, 3, 1, 0)
+-		self.conv4_3.weight = nn.Parameter(torch.FloatTensor(vgg.modules[35].weight))
+-		self.conv4_3.bias = nn.Parameter(torch.FloatTensor(vgg.modules[35].bias))
++		self.conv4_3.weight = nn.Parameter(vgg_state_dict['35.weight'])
++		self.conv4_3.bias = nn.Parameter(vgg_state_dict['35.bias'])
+ 
+ 		self.conv4_4 = nn.Conv2d(512, 512, 3, 1, 0)
+-		self.conv4_4.weight = nn.Parameter(torch.FloatTensor(vgg.modules[38].weight))
+-		self.conv4_4.bias = nn.Parameter(torch.FloatTensor(vgg.modules[38].bias))
++		self.conv4_4.weight = nn.Parameter(vgg_state_dict['38.weight'])
++		self.conv4_4.bias = nn.Parameter(vgg_state_dict['38.bias'])
+ 
+ 		###Level5###
+ 		self.conv5_1 = nn.Conv2d(512, 512, 3, 1, 0)
+-		self.conv5_1.weight = nn.Parameter(torch.FloatTensor(vgg.modules[42].weight))
+-		self.conv5_1.bias = nn.Parameter(torch.FloatTensor(vgg.modules[42].bias))
++		self.conv5_1.weight = nn.Parameter(vgg_state_dict['42.weight'])
++		self.conv5_1.bias = nn.Parameter(vgg_state_dict['42.bias'])
+ 
+ 	def forward(self, x):
+ 		skips = {}
+@@ -515,13 +516,13 @@ class VGGEncoder(nn.Module):
+ 			return out
+ 
+ class VGGDecoder(nn.Module):
+-	def __init__(self):
++	def __init__(self, device):
+ 		super(VGGDecoder, self).__init__()
+ 		
+ 		self.pad = nn.ReflectionPad2d(1)
+ 		self.relu = nn.ReLU(inplace=False)
+ 		self.adain = AdaIN()
+-		self.styledecorator = StyleDecorator()
++		self.styledecorator = StyleDecorator(device)
+ 
+ 		#self.conv5_1 = nn.Conv2d(512, 512, 3, 1, 0)
+ 		#self.conv4_4 = nn.Conv2d(512, 512, 3, 1, 0)
+@@ -591,14 +592,14 @@ class VGGDecoder(nn.Module):
+ 
+ 
+ class Baseline_net(nn.Module):
+-	def __init__(self, pretrained_vgg=None):
++	def __init__(self, pretrained_vgg=None, device="cpu"):
+ 		super(Baseline_net, self).__init__()
+ 
+ 		self.encoder = VGGEncoder(pretrained_vgg)
+-		self.decoder = VGGDecoder()
++		self.decoder = VGGDecoder(device)
+ 		#self.transformer = Transform(in_planes=512)
+ 		self.adain = AdaIN()
+-		self.decorator = StyleDecorator()
++		self.decorator = StyleDecorator(device)
+ 		#query_channels = 512
+ 		#key_channels = 512 + 256 + 128 + 64
+ 		
+diff --git a/baseline.py b/baseline.py
+index 9ced37e..dbb517a 100644
+--- a/baseline.py
++++ b/baseline.py
+@@ -1,6 +1,8 @@
+ import os, math, random, pdb, time, timeit, cv2
+ #from requests import patch
+ 
++from pathlib import Path
++
+ import torch, torchfile
+ import torchvision.utils as utils
+ import torch.nn.functional as F
+@@ -84,19 +86,20 @@ class Baseline(object):
+ 		self.comment = args.comment
+ 		self.max_iter = args.max_iter
+ 		self.check_iter = args.check_iter
++		self.device = args.device if isinstance(args.device, str) else torch.device(args.device)
+ 		self.args = args
+ 
+-		self.hist = RGBuvHistBlock(insz=64, h=256, intensity_scale=True, method='inverse-quadratic').cuda()
++		self.hist = RGBuvHistBlock(insz=64, h=256, intensity_scale=True, method='inverse-quadratic', device=self.device).to(self.device)
+ 
+ 		#######################################
+ 		####          Model Load           ####
+ 		#######################################
+-		pretrained_vgg = torchfile.load('./baseline_checkpoints/vgg_normalised_conv5_1.t7')
+-		self.network = Baseline_net(pretrained_vgg=pretrained_vgg)
++		pretrained_vgg = torch.load(Path(__file__).parent / './baseline_checkpoints/vgg_normalised_conv5_1.pth')
++		self.network = Baseline_net(pretrained_vgg=pretrained_vgg, device=self.device)
+ 		self.discriminator = MultiScaleImageDiscriminator()
+ 		
+-		self.network.cuda()
+-		self.discriminator.cuda()
++		self.network.to(self.device)
++		self.discriminator.to(self.device)
+ 		
+ 		#######################################
+ 		####   Loss function, Optimizer    ####
+@@ -121,10 +124,10 @@ class Baseline(object):
+ 		self.d_reg_every = 16
+ 		self.d_reg_ratio = self.d_reg_every / (self.d_reg_every+1)
+ 
+-		self.MSE_loss = torch.nn.MSELoss().cuda()
+-		self.MSE_instance_loss = torch.nn.MSELoss(reduction='none').cuda()
+-		self.bce_loss = torch.nn.BCEWithLogitsLoss().cuda()
+-		self.cross_entropy_loss = torch.nn.CrossEntropyLoss().cuda()
++		self.MSE_loss = torch.nn.MSELoss().to(self.device)
++		self.MSE_instance_loss = torch.nn.MSELoss(reduction='none').to(self.device)
++		self.bce_loss = torch.nn.BCEWithLogitsLoss().to(self.device)
++		self.cross_entropy_loss = torch.nn.CrossEntropyLoss().to(self.device)
+ 
+ 		self.tv_weight = 1e-6 #1
+ 
+@@ -367,17 +370,20 @@ class Baseline(object):
+ 
+ 			
+ 			del content_, style_, style_adaptive_alpha_, ground_truth_, stylized_results
+-			torch.cuda.empty_cache()
++			if torch.cuda.is_available():
++				torch.cuda.empty_cache()
++			elif torch.mps.is_available():
++				torch.mps.empty_cache()
+ 		
+ 		return reg
+ 
+ 	
+ 	def calc_adaptive_alpha(self, style, gray_style):
+-		color_style_alpha_8 = (((self.adaptive_gram_weight(style, 1, 8)+self.adaptive_gram_weight(style, 2, 8)+self.adaptive_gram_weight(style, 3, 8) ) /3 ).unsqueeze(1).cuda() )
+-		gray_style_alpha_8 = ((self.adaptive_gram_weight(gray_style, 1, 8)+self.adaptive_gram_weight(gray_style, 2, 8)+self.adaptive_gram_weight(gray_style, 3, 8) ) /3 ).unsqueeze(1).cuda()
++		color_style_alpha_8 = (((self.adaptive_gram_weight(style, 1, 8)+self.adaptive_gram_weight(style, 2, 8)+self.adaptive_gram_weight(style, 3, 8) ) /3 ).unsqueeze(1).to(self.device) )
++		gray_style_alpha_8 = ((self.adaptive_gram_weight(gray_style, 1, 8)+self.adaptive_gram_weight(gray_style, 2, 8)+self.adaptive_gram_weight(gray_style, 3, 8) ) /3 ).unsqueeze(1).to(self.device)
+ 
+-		color_style_alpha_16 = (((self.adaptive_gram_weight(style, 1, 16)+self.adaptive_gram_weight(style, 2, 16)+self.adaptive_gram_weight(style, 3, 16) ) /3 ).unsqueeze(1).cuda() )
+-		gray_style_alpha_16 = ((self.adaptive_gram_weight(gray_style, 1, 16)+self.adaptive_gram_weight(gray_style, 2, 16)+self.adaptive_gram_weight(gray_style, 3, 16) ) /3 ).unsqueeze(1).cuda()
++		color_style_alpha_16 = (((self.adaptive_gram_weight(style, 1, 16)+self.adaptive_gram_weight(style, 2, 16)+self.adaptive_gram_weight(style, 3, 16) ) /3 ).unsqueeze(1).to(self.device) )
++		gray_style_alpha_16 = ((self.adaptive_gram_weight(gray_style, 1, 16)+self.adaptive_gram_weight(gray_style, 2, 16)+self.adaptive_gram_weight(gray_style, 3, 16) ) /3 ).unsqueeze(1).to(self.device)
+ 
+ 		return (color_style_alpha_16 + gray_style_alpha_16 + color_style_alpha_8 + gray_style_alpha_8 )/4
+ 
+@@ -407,15 +413,15 @@ class Baseline(object):
+ 			#self.adjust_learning_rate(self.optim, iteration_count=iteration)
+ 			empty_segment = np.asarray([])
+ 			try:
+-				content = next(self.content_iter).cuda()
+-				style = next(self.art_iter).cuda()
++				content = next(self.content_iter).to(self.device)
++				style = next(self.art_iter).to(self.device)
+ 				content = size_arrange(content)
+ 				style = size_arrange(style)
+ 			except:
+ 				self.content_iter = iter(content_loader)
+ 				self.art_iter = iter(art_reference_loader)
+-				content = next(self.content_iter).cuda()
+-				style = next(self.art_iter).cuda()
++				content = next(self.content_iter).to(self.device)
++				style = next(self.art_iter).to(self.device)
+ 				content = size_arrange(content)
+ 				style = size_arrange(style)
+ 				
+@@ -423,9 +429,9 @@ class Baseline(object):
+ 			###***********************###
+ 			## Step 0 : Get Patterned value of given style images ##
+ 			###***********************###
+-			#adaptive_alpha = self.adaptive_gram_weight(style, 3, 8).unsqueeze(1).cuda()
+-			#content_adaptive_alpha = ((self.adaptive_gram_weight(content, 1, 8)+self.adaptive_gram_weight(content, 2, 8)+self.adaptive_gram_weight(content, 3, 8) ) /3 ).unsqueeze(1).cuda()
+-			#style_adaptive_alpha = ((self.adaptive_gram_weight(style, 1, 8)+self.adaptive_gram_weight(style, 2, 8)+self.adaptive_gram_weight(style, 3, 8) ) /3 ).unsqueeze(1).cuda()
++			#adaptive_alpha = self.adaptive_gram_weight(style, 3, 8).unsqueeze(1).to(self.device)
++			#content_adaptive_alpha = ((self.adaptive_gram_weight(content, 1, 8)+self.adaptive_gram_weight(content, 2, 8)+self.adaptive_gram_weight(content, 3, 8) ) /3 ).unsqueeze(1).to(self.device)
++			#style_adaptive_alpha = ((self.adaptive_gram_weight(style, 1, 8)+self.adaptive_gram_weight(style, 2, 8)+self.adaptive_gram_weight(style, 3, 8) ) /3 ).unsqueeze(1).to(self.device)
+ 
+ 
+ 			#########################
+@@ -441,8 +447,8 @@ class Baseline(object):
+ 			gray_content = torchvision.transforms.functional.rgb_to_grayscale(content).repeat(1,3,1,1)
+ 			gray_style = torchvision.transforms.functional.rgb_to_grayscale(style).repeat(1,3,1,1)
+ 
+-			style_adaptive_alpha = (((self.adaptive_gram_weight(style, 1, 8)+self.adaptive_gram_weight(style, 2, 8)+self.adaptive_gram_weight(style, 3, 8) ) /3 ).unsqueeze(1).cuda() +\
+-			 ((self.adaptive_gram_weight(gray_style, 1, 8)+self.adaptive_gram_weight(gray_style, 2, 8)+self.adaptive_gram_weight(gray_style, 3, 8) ) /3 ).unsqueeze(1).cuda() )/2
++			style_adaptive_alpha = (((self.adaptive_gram_weight(style, 1, 8)+self.adaptive_gram_weight(style, 2, 8)+self.adaptive_gram_weight(style, 3, 8) ) /3 ).unsqueeze(1).to(self.device) +\
++			 ((self.adaptive_gram_weight(gray_style, 1, 8)+self.adaptive_gram_weight(gray_style, 2, 8)+self.adaptive_gram_weight(gray_style, 3, 8) ) /3 ).unsqueeze(1).to(self.device) )/2
+ 
+ 			content_recon,_,_,_,_ = self.network(gray_content, content, torch.ones_like(style_adaptive_alpha), gray_content, content)
+ 			style_recon,_,_,_,_ = self.network(gray_style, style, style_adaptive_alpha, gray_style, style)
+@@ -484,7 +490,7 @@ class Baseline(object):
+ 			origin_gan_output = self.discriminator(style)
+ 			style_gan_output = self.discriminator(stylization.detach())
+ 
+-			D_loss = self.bce_loss(origin_gan_output, ones_like(origin_gan_output)) + self.bce_loss(style_gan_output, zeros_like(style_gan_output))
++			D_loss = self.bce_loss(origin_gan_output, ones_like(origin_gan_output)) + self.bce_loss(style_gan_output, zeros_like(style_gan_output, self.device))
+ 
+ 			self.dis_optim.zero_grad()
+ 			D_loss.backward()
+@@ -523,7 +529,10 @@ class Baseline(object):
+ 					if level==4:
+ 						cx_loss += ( (contextual_loss_v2(content_feat, recon_content_feat)) + (contextual_loss_v2(style_feat, recon_style_feat)) )
+ 				del style_feat, content_feat, stylized_feat, recon_content_feat, recon_style_feat
+-				torch.cuda.empty_cache()
++				if torch.cuda.is_available():
++					torch.cuda.empty_cache()
++				elif torch.mps.is_available():
++					torch.mps.empty_cache()
+ 			
+ 			
+ 			attnded_style_loss = torch.mean(
+@@ -552,7 +561,10 @@ class Baseline(object):
+ 			if torch.isnan(total_loss):
+ 				del content_recon, style_recon, stylization
+ 				del total_loss				
+-				torch.cuda.empty_cache()
++				if torch.cuda.is_available():
++					torch.cuda.empty_cache()
++				elif torch.mps.is_available():
++					torch.mps.empty_cache()
+ 				continue
+ 
+ 			self.optim.zero_grad()
+@@ -592,12 +604,15 @@ class Baseline(object):
+ 
+ 			del content_recon, style_recon, stylization#, r1_loss_sum
+ 			del total_loss
+-			torch.cuda.empty_cache()
++			if torch.cuda.is_available():
++				torch.cuda.empty_cache()
++			elif torch.mps.is_available():
++				torch.mps.empty_cache()
+ 
+ 
+ 	def test(self, args):
+-		self.network.decoder.load_state_dict(torch.load(os.path.join(self.result_st_dir, 'dec_model_.pth'))['state_dict'])
+-		self.network.transformer.load_state_dict(torch.load(os.path.join(self.result_st_dir, 'transformer_model_.pth'))['state_dict'])
++		self.network.decoder.load_state_dict(torch.load(os.path.join(self.result_st_dir, 'dec_model_.pth'), map_location=self.device)['state_dict'])
++		self.network.transformer.load_state_dict(torch.load(os.path.join(self.result_st_dir, 'transformer_model_.pth'), map_location=self.device)['state_dict'])
+ 		
+ 		content_set = Transfer_TestDataset(self.content_dir, (512, 512), self.cropsize, self.cencrop, type='art', is_test=True)
+ 		art_reference_set = Transfer_TestDataset(self.style_dir, (512, 512), self.cropsize, self.cencrop, type='art', is_test=True)
+@@ -622,13 +637,13 @@ class Baseline(object):
+ 		for iteration in range(1,(N//self.batch_size)+1):
+ 			empty_segment = np.asarray([])
+ 			try:
+-				content = next(self.content_iter).cuda()
+-				style = next(self.art_iter).cuda()
++				content = next(self.content_iter).to(self.device)
++				style = next(self.art_iter).to(self.device)
+ 			except:
+ 				self.content_iter = iter(content_loader)
+ 				self.art_iter = iter(art_reference_loader)
+-				content = next(self.content_iter).cuda()
+-				style = next(self.art_iter).cuda()
++				content = next(self.content_iter).to(self.device)
++				style = next(self.art_iter).to(self.device)
+ 			
+ 			content = size_arrange(content)
+ 			style = size_arrange(style)
+@@ -637,8 +652,8 @@ class Baseline(object):
+ 			gray_style = torchvision.transforms.functional.rgb_to_grayscale(style).repeat(1,3,1,1)
+ 
+ 			start = timeit.default_timer()
+-			style_adaptive_alpha = (((self.adaptive_gram_weight(style, 1, 8)+self.adaptive_gram_weight(style, 2, 8)+self.adaptive_gram_weight(style, 3, 8) ) /3 ).unsqueeze(1).cuda() +\
+-			 ((self.adaptive_gram_weight(gray_style, 1, 8)+self.adaptive_gram_weight(gray_style, 2, 8)+self.adaptive_gram_weight(gray_style, 3, 8) ) /3 ).unsqueeze(1).cuda() )/2
++			style_adaptive_alpha = (((self.adaptive_gram_weight(style, 1, 8)+self.adaptive_gram_weight(style, 2, 8)+self.adaptive_gram_weight(style, 3, 8) ) /3 ).unsqueeze(1).to(self.device) +\
++			 ((self.adaptive_gram_weight(gray_style, 1, 8)+self.adaptive_gram_weight(gray_style, 2, 8)+self.adaptive_gram_weight(gray_style, 3, 8) ) /3 ).unsqueeze(1).to(self.device) )/2
+ 			
+ 			stylization, attn_style_4_1, attn_style_5_1, attn_map_4_1, attn_map_5_1 = self.network(content, style, style_adaptive_alpha, gray_content, style)
+ 			
+@@ -663,7 +678,10 @@ class Baseline(object):
+ 			#imsave(content,  os.path.join(dir_path,  'content'+str(iteration)+'.png'), nrow=self.batch_size )
+ 			#imsave(style,  os.path.join(dir_path,  'style'+str(iteration)+'.png'), nrow=self.batch_size )
+ 			#del content, style, gray_content, gray_style
+-			torch.cuda.empty_cache()
++			if torch.cuda.is_available():
++				torch.cuda.empty_cache()
++			elif torch.mps.is_available():
++				torch.mps.empty_cache()
+ 		print('avg : ', np.mean(inference_time))
+ 		
+ 
+@@ -698,21 +716,21 @@ class Baseline(object):
+ 		for iteration in range(1,(N//self.batch_size)+1):
+ 			empty_segment = np.asarray([])
+ 			try:
+-				content = next(self.content_iter).cuda()
+-				style = next(self.art_iter).cuda()
++				content = next(self.content_iter).to(self.device)
++				style = next(self.art_iter).to(self.device)
+ 			except:
+ 				self.content_iter = iter(content_loader)
+ 				self.art_iter = iter(art_reference_loader)
+-				content = next(self.content_iter).cuda()
+-				style = next(self.art_iter).cuda()
++				content = next(self.content_iter).to(self.device)
++				style = next(self.art_iter).to(self.device)
+ 
+ 			content = size_arrange(content)
+ 			style = size_arrange(style)
+ 			
+ 			gray_style = torchvision.transforms.functional.rgb_to_grayscale(style).repeat(1,3,1,1)
+ 
+-			style_adaptive_alpha = (((self.adaptive_gram_weight(style, 1, 8)+self.adaptive_gram_weight(style, 2, 8)+self.adaptive_gram_weight(style, 3, 8) ) /3 ).unsqueeze(1).cuda() +\
+-			((self.adaptive_gram_weight(gray_style, 1, 8)+self.adaptive_gram_weight(gray_style, 2, 8)+self.adaptive_gram_weight(gray_style, 3, 8) ) /3 ).unsqueeze(1).cuda() )/2
++			style_adaptive_alpha = (((self.adaptive_gram_weight(style, 1, 8)+self.adaptive_gram_weight(style, 2, 8)+self.adaptive_gram_weight(style, 3, 8) ) /3 ).unsqueeze(1).to(self.device) +\
++			((self.adaptive_gram_weight(gray_style, 1, 8)+self.adaptive_gram_weight(gray_style, 2, 8)+self.adaptive_gram_weight(gray_style, 3, 8) ) /3 ).unsqueeze(1).to(self.device) )/2
+ 			
+ 			stylization = self.network(content, style, style_adaptive_alpha, content, style)[0]
+ 			CE = 0
+@@ -734,14 +752,20 @@ class Baseline(object):
+ 					art_ours_output_feat = gram_matrix(self.network.encoder.get_features(cropped_stylization[k], level))
+ 					gram_loss.append(self.MSE_loss(reference_feat, art_ours_output_feat).item())
+ 					del reference_feat, art_ours_output_feat
+-					torch.cuda.empty_cache()
++					if torch.cuda.is_available():
++						torch.cuda.empty_cache()
++					elif torch.mps.is_available():
++						torch.mps.empty_cache()
+ 				total_gram_loss.append(np.mean(gram_loss))
+ 				
+ 			
+ 			total_style_loss +=  np.mean(total_gram_loss)
+ 
+ 			del stylization
+-			torch.cuda.empty_cache()
++			if torch.cuda.is_available():
++				torch.cuda.empty_cache()
++			elif torch.mps.is_available():
++				torch.mps.empty_cache()
+ 
+ 		total_CE = total_CE / N
+ 		print("iteration  : " )
+@@ -772,13 +796,13 @@ class Baseline(object):
+ 		for iteration in range(1,(N//self.batch_size)+1):
+ 			empty_segment = np.asarray([])
+ 			try:
+-				content = next(content_iter).cuda()
+-				style = next(art_iter).cuda()
++				content = next(content_iter).to(self.device)
++				style = next(art_iter).to(self.device)
+ 			except:
+ 				self.content_iter = iter(content_loader)
+ 				self.art_iter = iter(art_reference_loader)
+-				content = next(self.content_iter).cuda()
+-				style = next(self.art_iter).cuda()
++				content = next(self.content_iter).to(self.device)
++				style = next(self.art_iter).to(self.device)
+ 				content = size_arrange(content)
+ 				style = size_arrange(style)
+ 			
+@@ -786,14 +810,14 @@ class Baseline(object):
+ 			gray_style = torchvision.transforms.functional.rgb_to_grayscale(style).repeat(1,3,1,1)
+ 
+ 			
+-			style_adaptive_alpha = (((self.adaptive_gram_weight(style, 1, 8)+self.adaptive_gram_weight(style, 2, 8)+self.adaptive_gram_weight(style, 3, 8) ) /3 ).unsqueeze(1).cuda() +\
+-			 ((self.adaptive_gram_weight(gray_style, 1, 8)+self.adaptive_gram_weight(gray_style, 2, 8)+self.adaptive_gram_weight(gray_style, 3, 8) ) /3 ).unsqueeze(1).cuda() )/2
++			style_adaptive_alpha = (((self.adaptive_gram_weight(style, 1, 8)+self.adaptive_gram_weight(style, 2, 8)+self.adaptive_gram_weight(style, 3, 8) ) /3 ).unsqueeze(1).to(self.device) +\
++			 ((self.adaptive_gram_weight(gray_style, 1, 8)+self.adaptive_gram_weight(gray_style, 2, 8)+self.adaptive_gram_weight(gray_style, 3, 8) ) /3 ).unsqueeze(1).to(self.device) )/2
+ 			
+ 			stylized_results = self.network(content, style, style_adaptive_alpha, gray_content, style)[0]
+ 
+ 			gray_stylized = torchvision.transforms.functional.rgb_to_grayscale(stylized_results).repeat(1,3,1,1)
+-			stylized_adaptive_alpha = (((self.adaptive_gram_weight(stylized_results, 1, 8)+self.adaptive_gram_weight(stylized_results, 2, 8)+self.adaptive_gram_weight(stylized_results, 3, 8) ) /3 ).unsqueeze(1).cuda() +\
+-			 ((self.adaptive_gram_weight(gray_stylized, 1, 8)+self.adaptive_gram_weight(gray_stylized, 2, 8)+self.adaptive_gram_weight(gray_stylized, 3, 8) ) /3 ).unsqueeze(1).cuda() )/2
++			stylized_adaptive_alpha = (((self.adaptive_gram_weight(stylized_results, 1, 8)+self.adaptive_gram_weight(stylized_results, 2, 8)+self.adaptive_gram_weight(stylized_results, 3, 8) ) /3 ).unsqueeze(1).to(self.device) +\
++			 ((self.adaptive_gram_weight(gray_stylized, 1, 8)+self.adaptive_gram_weight(gray_stylized, 2, 8)+self.adaptive_gram_weight(gray_stylized, 3, 8) ) /3 ).unsqueeze(1).to(self.device) )/2
+ 
+ 			stylized_value.append(torch.nn.functional.l1_loss(stylized_adaptive_alpha, style_adaptive_alpha).item())
+ 			mse_stylized_value.append(((stylized_adaptive_alpha-style_adaptive_alpha)**2).item())
+@@ -805,7 +829,10 @@ class Baseline(object):
+ 				gram_loss.append(self.MSE_loss(reference_feat, art_ours_output_feat).item())
+ 
+ 				del reference_feat, art_ours_output_feat
+-				torch.cuda.empty_cache()
++				if torch.cuda.is_available():
++					torch.cuda.empty_cache()
++				elif torch.mps.is_available():
++					torch.mps.empty_cache()
+ 
+ 		print(" ")
+ 		print(" GRAM Loss : " ,  np.mean(gram_loss), "  ", np.std(gram_loss))
+diff --git a/data/dataset_util.py b/data/dataset_util.py
+index 4208590..d80b9b7 100644
+--- a/data/dataset_util.py
++++ b/data/dataset_util.py
+@@ -270,7 +270,7 @@ def _transformer(imsize=None, cropsize=None, cencrop=False):
+ 
+ def imsave(tensor, path, nrow=4, npadding=0):
+ 	denormalize = _normalizer(denormalize=True)
+-	if tensor.is_cuda:
++	if tensor.device.type != "cpu":
+ 		tensor = tensor.cpu()
+ 	tensor = torchvision.utils.make_grid(tensor, nrow=nrow, padding=npadding)
+ 	torchvision.utils.save_image(denormalize(tensor).clamp_(0.0, 1.0), path)
+@@ -279,7 +279,7 @@ def imsave(tensor, path, nrow=4, npadding=0):
+ def imsave_no_norm(tensor1, tensor2, path, nrow=4, npadding=0):
+ 	normalize = _normalizer(denormalize=False)
+ 	denormalize = _normalizer(denormalize=True)
+-	if tensor1.is_cuda:
++	if tensor1.device.type != "cpu":
+ 		tensor1 = tensor1.cpu()
+ 		tensor2 = tensor2.cpu()
+ 	tensor1 = torchvision.utils.make_grid(tensor1, nrow=nrow, padding=npadding)
+@@ -290,7 +290,7 @@ def imsave_no_norm(tensor1, tensor2, path, nrow=4, npadding=0):
+ 
+ def denorm(tensor, nrow=4, npadding=0):
+ 	denormalize = _normalizer(denormalize=True)
+-	if tensor.is_cuda:
++	if tensor.device.type != "cpu":
+ 		tensor = tensor.cpu()
+ 	tensor = torchvision.utils.make_grid(tensor, nrow=nrow, padding=npadding)
+ 	return (denormalize(tensor).clamp_(0.0, 1.0))
+@@ -301,7 +301,7 @@ def imload(path, imsize=None, cropsize=None, cencrop=False):
+ 
+ def imshow(tensor):
+ 	denormalize = _normalizer(denormalize=True)    
+-	if tensor.is_cuda:
++	if tensor.device.type != "cpu":
+ 		tensor = tensor.cpu()    
+ 	tensor = torchvision.utils.make_grid(denormalize(tensor.squeeze(0)))
+ 	image = transforms.functional.to_pil_image(tensor.clamp_(0.0, 1.0))
+diff --git a/hist_loss.py b/hist_loss.py
+index 0763c90..5680d87 100644
+--- a/hist_loss.py
++++ b/hist_loss.py
+@@ -46,9 +46,9 @@ class RGBuvHistBlock(nn.Module):
+ 											mode='bilinear', align_corners=False)
+ 			elif self.resizing == 'sampling':
+ 				inds_1 = torch.LongTensor(
+-					np.linspace(0, x.shape[2], self.h, endpoint=False)).cuda()
++					np.linspace(0, x.shape[2], self.h, endpoint=False)).to(self.device)
+ 				inds_2 = torch.LongTensor(
+-					np.linspace(0, x.shape[3], self.h, endpoint=False)).cuda()
++					np.linspace(0, x.shape[3], self.h, endpoint=False)).to(self.device)
+ 				x_sampled = x.index_select(2, inds_1)
+ 				x_sampled = x_sampled.index_select(3, inds_2)
+ 			# else:
+@@ -62,7 +62,7 @@ class RGBuvHistBlock(nn.Module):
+ 		if x_sampled.shape[1] > 3:
+ 			x_sampled = x_sampled[:, :3, :, :]
+ 		X = torch.unbind(x_sampled, dim=0)
+-		hists = torch.zeros((x_sampled.shape[0], 3, self.h, self.h)).cuda()
++		hists = torch.zeros((x_sampled.shape[0], 3, self.h, self.h)).to(self.device)
+ 		for l in range(L):
+ 			I = torch.t(torch.reshape(X[l], (3, -1)))
+ 			II = torch.pow(I, 2)
+@@ -75,8 +75,8 @@ class RGBuvHistBlock(nn.Module):
+ 								dim=1)
+ 			Iv0 = torch.unsqueeze(torch.log(I[:, 0] + EPS) - torch.log(I[:, 2] + EPS),
+ 								dim=1)
+-			diff_u0 = abs(Iu0 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)), dim=0).cuda())
+-			diff_v0 = abs(Iv0 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)), dim=0).cuda())
++			diff_u0 = abs(Iu0 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)), dim=0).to(self.device))
++			diff_v0 = abs(Iv0 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)), dim=0).to(self.device))
+ 			if self.method == 'thresholding':
+ 				diff_u0 = torch.reshape(diff_u0, (-1, self.h)) <= self.eps / 2
+ 				diff_v0 = torch.reshape(diff_v0, (-1, self.h)) <= self.eps / 2
+@@ -109,10 +109,10 @@ class RGBuvHistBlock(nn.Module):
+ 								dim=1)
+ 			diff_u1 = abs(
+ 			Iu1 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)),
+-									dim=0).cuda())
++									dim=0).to(self.device))
+ 			diff_v1 = abs(
+ 			Iv1 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)),
+-									dim=0).cuda())
++									dim=0).to(self.device))
+ 
+ 			if self.method == 'thresholding':
+ 				diff_u1 = torch.reshape(diff_u1, (-1, self.h)) <= self.eps / 2
+@@ -143,10 +143,10 @@ class RGBuvHistBlock(nn.Module):
+ 								dim=1)
+ 			diff_u2 = abs(
+ 			Iu2 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)),
+-									dim=0).cuda())
++									dim=0).to(self.device))
+ 			diff_v2 = abs(
+ 			Iv2 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)),
+-									dim=0).cuda())
++									dim=0).to(self.device))
+ 			if self.method == 'thresholding':
+ 				diff_u2 = torch.reshape(diff_u2, (-1, self.h)) <= self.eps / 2
+ 				diff_v2 = torch.reshape(diff_v2, (-1, self.h)) <= self.eps / 2
+diff --git a/style_decorator.py b/style_decorator.py
+index ba8a270..71c03b2 100644
+--- a/style_decorator.py
++++ b/style_decorator.py
+@@ -29,7 +29,8 @@ def extract_patches(feature, patch_size, stride, padding='zero'):
+ 
+ class StyleDecorator(torch.nn.Module):
+ 	
+-	def __init__(self):
++	def __init__(self, device):
++		self.device = device
+ 		super(StyleDecorator, self).__init__()
+ 
+ 	def kernel_normalize(self,kernel, k=3,  eps=1e-5):
+@@ -161,17 +162,17 @@ class StyleDecorator(torch.nn.Module):
+ 	def forward(self, content_feature, style_feature, style_strength=1.0, patch_size=3, patch_stride=1): 
+ 
+ 		# 1-1. content feature projection
+-		normalized_content_feature = whitening(content_feature)
++		normalized_content_feature = whitening(content_feature, self.device)
+ 
+ 		# 1-2. style feature projection
+-		normalized_style_feature = whitening(style_feature)
++		normalized_style_feature = whitening(style_feature, self.device)
+ 
+ 		# 2. swap content and style features
+ 		reassembled_feature = self.reassemble_feature(normalized_content_feature, normalized_style_feature,
+ 				patch_size=patch_size, patch_stride=patch_stride)
+ 
+ 		# 3. reconstruction feature with style mean and covariance matrix
+-		stylized_feature = coloring(reassembled_feature, style_feature)
++		stylized_feature = coloring(reassembled_feature, style_feature, self.device)
+ 
+ 		# 4. content and style interpolation
+ 		result_feature = (1-style_strength) * content_feature + style_strength * stylized_feature
+diff --git a/utils.py b/utils.py
+index a4a5791..c99648d 100644
+--- a/utils.py
++++ b/utils.py
+@@ -9,7 +9,7 @@ import numpy as np
+ from PIL import Image
+ from scipy import linalg
+ import imageio
+-import skvideo
++# import skvideo
+ import pdb
+ 
+ def svd(feat, iden=False, device='cuda:0'):
+@@ -44,7 +44,7 @@ def get_rank(singular_values, dim, eps=0.00001):
+ 	return r
+ 
+ 
+-def covsqrt_mean(feature, inverse=False, tolerance=1e-14):
++def covsqrt_mean(feature, inverse=False, tolerance=1e-14, device="cpu"):
+ 	# I referenced the default svd tolerance value in matlab.
+ 
+ 	b, c, h, w = feature.size()
+@@ -53,7 +53,7 @@ def covsqrt_mean(feature, inverse=False, tolerance=1e-14):
+ 	zeromean = feature.view(b, c, -1) - mean
+ 	cov = torch.bmm(zeromean, zeromean.transpose(1, 2))
+ 	
+-	eps_matrix_ = (torch.ones_like(cov)*1e-8).cuda()
++	eps_matrix_ = (torch.ones_like(cov)*1e-8).to(device)
+ 	#evals, evects = torch.symeig(cov, eigenvectors=True)
+ 	evals, evects = torch.symeig(cov+eps_matrix_, eigenvectors=True)
+ 	
+@@ -77,16 +77,16 @@ def covsqrt_mean(feature, inverse=False, tolerance=1e-14):
+ 	return covsqrt, mean
+ 	
+ 
+-def whitening(feature):
++def whitening(feature, device="cpu"):
+ 	b, c, h, w = feature.size()
+ 	
+-	inv_covsqrt, mean = covsqrt_mean(feature, inverse=True)
++	inv_covsqrt, mean = covsqrt_mean(feature, inverse=True, device=device)
+ 	
+ 	normalized_feature = torch.matmul(inv_covsqrt, feature.view(b, c, -1)-mean)
+ 	
+ 	return normalized_feature.view(b, c, h, w)
+ 
+-def whitening_edit(feature):
++def whitening_edit(feature, device):
+ 	b, c, h, w = feature.size()
+ 	cont_feat = get_squeeze_feat(feature)
+ 	cont_min = cont_feat.min()
+@@ -94,7 +94,7 @@ def whitening_edit(feature):
+ 	cont_mean = torch.mean(cont_feat, 1).unsqueeze(1).expand_as(cont_feat)
+ 	cont_feat -= cont_mean
+ 
+-	_, c_e, c_v = svd(cont_feat, iden=True)
++	_, c_e, c_v = svd(cont_feat, iden=True, device=device)
+ 	k_c = get_rank(c_e, cont_feat.size()[0])
+ 	c_d = (c_e[0:k_c]).pow(-0.5)
+ 	step1 = torch.mm(c_v[:, 0:k_c], torch.diag(c_d))
+@@ -107,10 +107,10 @@ def whitening_edit(feature):
+ 	
+ 	return normalized_feature.view(b, c, h, w)
+ 
+-def coloring(feature, target):
++def coloring(feature, target, device="cpu"):
+ 	b, c, h, w = feature.size()
+ 
+-	covsqrt, mean = covsqrt_mean(target)
++	covsqrt, mean = covsqrt_mean(target, device=device)
+ 	
+ 	colored_feature = torch.matmul(covsqrt, feature.view(b, c, -1)) + mean
+ 	
+@@ -216,7 +216,7 @@ def wct_core_segment(content_feat, style_feat, content_segment, style_segment,
+ 		mask = np.where(feat.reshape(feat.shape[0] * feat.shape[1]) == label)
+ 		if mask[0].size <= 0:
+ 			return None
+-		return torch.LongTensor(mask[0]).cuda()
++		return torch.LongTensor(mask[0]).to(device)
+ 
+ 	squeeze_content_feat = content_feat.squeeze(0)
+ 	squeeze_style_feat = style_feat.squeeze(0)
+@@ -440,11 +440,11 @@ def TVloss(img, tv_weight):
+ 	loss = tv_weight * (h_variance + w_variance)
+ 	return loss
+ 
+-def zeros_like(x):
+-	return torch.autograd.Variable(torch.zeros_like(x).cuda())
++def zeros_like(x, device):
++	return torch.autograd.Variable(torch.zeros_like(x).to(device))
+ 
+-def ones_like(x):
+-	return torch.autograd.Variable(torch.ones_like(x).cuda())
++def ones_like(x, device):
++	return torch.autograd.Variable(torch.ones_like(x).to(device))
+ 
+ 
+ def denorm_2(x):
+@@ -512,15 +512,15 @@ class GuidedFilter(nn.Module):
+ 
+ 
+ 
+-def attn_visualization_all(Ic, Is, Fc, Fs, Attn, slide_size=4):
++def attn_visualization_all(Ic, Is, Fc, Fs, Attn, slide_size=4, device="cpu"):
+ 	if Ic.size(3) != Is.size(3):
+ 		Is = torch.nn.functional.interpolate(Is, size=(Ic.size(2), Ic.size(3)))
+ 	B, C, S = Attn.size()
+ 	B, c, c_w, c_h = Ic.size()
+ 	B, c, s_w, s_h = Is.size()
+ 	_, _, f_w, f_h = Fs.size()
+-	attn = torch.zeros(1, Fs.size(2)*Fs.size(3)).cuda()
+-	mask = torch.zeros(1, Fc.size(2)*Fc.size(3)).cuda()
++	attn = torch.zeros(1, Fs.size(2)*Fs.size(3)).to(device)
++	mask = torch.zeros(1, Fc.size(2)*Fc.size(3)).to(device)
+ 	for index in range(0, Fc.size(2)*Fc.size(3), slide_size):
+ 		for idx in range(slide_size):
+ 			start_idx = index+Fc.size(3)*idx

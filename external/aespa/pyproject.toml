@@ -1,0 +1,30 @@
+[project]
+name = "aespa"
+version = "0.1.0"
+description = "Python module for https://github.com/Kibeom-Hong/AesPA-Net"
+requires-python = ">=3.13"
+dependencies = [
+    "imageio>=2.37.3",
+    "natsort>=8.4.0",
+    "numpy>=2.4.5",
+    "opencv-python>=4.13.0.92",
+    "pillow>=12.2.0",
+    "scipy>=1.17.1",
+    "torch>=2.12.0",
+    "torchfile>=0.1.0",
+    "torchvision>=0.27.0",
+    "wandb>=0.27.1",
+]
+
+
+[build-system]
+requires = [
+    "hatchling", 
+    "requests",
+]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["AesPA_Net"]
+
+[tool.hatch.build.hooks.custom]

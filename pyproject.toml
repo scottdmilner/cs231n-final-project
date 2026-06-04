@@ -5,6 +5,7 @@ description = "Volumetric Neural Style Transfer: final project for Stanford CS23
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "aespa",
     "cs248a-renderer",
     "diffusers>=0.37.1",
     "gatys",
@@ -19,6 +20,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
+aespa = { workspace = true }
 cs248a-renderer = { path = "external/cs248a-renderer/" }
 gatys = { workspace = true }
 openvdb = { path = "external/openvdb" }
@@ -29,6 +31,7 @@ members = [
     "external/StyleID",
     "external/taming",
     "external/gatys",
+    "external/aespa",
 ]
 
 [build-system]
