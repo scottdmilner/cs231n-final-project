@@ -10,7 +10,7 @@ WEIGHTS_ROOT = "https://github.com/scottdmilner/cs231n-final-project/raw/refs/he
 weights = {
     "dec_model.pth": "train_results/aespa/log/dec_model_.pth",
     "transformer_model.pth": "train_results/aespa/log/transformer_model_.pth",
-    "vgg_normalised_conv5_1.t7": "baseline_checkpoints/vgg_normalised_conv5_1.pth",
+    "vgg_normalised_conv5_1.pth": "baseline_checkpoints/vgg_normalised_conv5_1.pth",
 }
 
 class CustomBuildHook(BuildHookInterface):
