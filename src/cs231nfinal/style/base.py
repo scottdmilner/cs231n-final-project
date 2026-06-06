@@ -57,11 +57,11 @@ class Stylizer(ABC):
         # style_mask = 1 - mask_stack
         # masked_style = style * style_mask + (1 - style_mask.to(torch.float32))
 
-        plt.imshow(style[0].permute((1,2,0)).to(torch.float32).cpu())
-        plt.show()
+        # plt.imshow(style[0].permute((1,2,0)).to(torch.float32).cpu())
+        # plt.show()
         def exp_loss_fn(a: torch.Tensor, b: torch.Tensor, k: int) -> torch.Tensor:
             return (torch.abs(a - b) ** (1 / k + 1)).mean() / (1 / k + 1)
-        print("hi", render_stack.shape, style.shape)
+        # print("hi", render_stack.shape, style.shape)
 
         # style_loss = loss_fn(render_stack, style)  # + tv_loss
         style_loss = exp_loss_fn(render_stack.unsqueeze(1).to(self._device), style, self.k)
