@@ -27,7 +27,6 @@ class GatysStylizer(Stylizer):
 
     def __init__(
         self,
-        image_path: str,
         sargs: StylizerArgs,
         style_weights: list[float] | None = None,
     ) -> None:
@@ -45,7 +44,7 @@ class GatysStylizer(Stylizer):
 
         self.vgg.to(self._device)
 
-        self.style_image = self._prep(ToTensor()(Image.open(image_path))).to(self._device)
+        self.style_image = self._prep(ToTensor()(Image.open(self._style_path))).to(self._device)
         if self._invert_style:
             torch.sub(1, self.style_image, out=self.style_image)
 

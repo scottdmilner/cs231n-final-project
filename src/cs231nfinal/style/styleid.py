@@ -3,8 +3,8 @@ from __future__ import annotations
 import torch
 
 import StyleID
-from omegaconf import OmegaConf
-from StyleID.ldm.models.diffusion.ddim import DDIMSampler
+# from omegaconf import OmegaConf
+# from StyleID.ldm.models.diffusion.ddim import DDIMSampler
 import copy
 from einops import rearrange
 
@@ -27,8 +27,8 @@ from StyleID.diffusers_implementation.utils import normalize
 
 
 class InjectionStylizer2(Stylizer):
-    def __init__(self, resolution: tuple[int, int], image_path: str, invert: bool = False) -> None:
-        super().__init__(resolution)
+    def __init__(self, sargs, invert: bool = False) -> None:
+        super().__init__(sargs)
 
         self.ddim_steps = 8
         self.device = "mps"
@@ -73,7 +73,7 @@ class InjectionStylizer2(Stylizer):
         self.unet_wrapper.trigger_get_qkv = True  # get attention features (key, value)
         self.unet_wrapper.trigger_modify_qkv = False
 
-        style_image = cv2.imread(image_path)[:, :, ::-1]
+        style_image = cv2.imread(self._style_path)[:, :, ::-1]
         normalized_style_image = (
             normalize(style_image).repeat(1, 1, 1, 1).to(device=self.vae.device, dtype=self.dtype)
         )
@@ -143,13 +143,10 @@ class InjectionStylizer2(Stylizer):
 
         latent_cs = content_latent
 
+        # print(denoise_kwargs)
         # reverse process
         print("Style transfer...")
         images, latents = self.unet_wrapper.reverse_process(
             latent_cs, denoise_kwargs=denoise_kwargs
         )  # reverse process save activations such as attn, res
-
-        return images[-1]
-
-        style_mask = camera_views < (1.0 - 1e-6)
-        return images[-1] * style_mask + (1 - style_mask.to(torch.float32))
+        return images[1]

@@ -11,15 +11,15 @@ from .base import Stylizer, StylizerArgs
 class NaiveStylizer(Stylizer):
     _style_image: torch.Tensor
 
-    def __init__(self, image_path: str, sargs: StylizerArgs) -> None:
-        super().__init__(sargs)
+    def __init__(self, sargs: StylizerArgs, k: int = 1) -> None:
+        super().__init__(sargs, k=k)
         preT = Compose(
             [
                 Resize(self._res),
                 Grayscale(),
             ]
         )
-        self._style_image = preT(read_image(image_path) / 255).squeeze().to(self._device)
+        self._style_image = preT(read_image(self._style_path) / 255).squeeze().to(self._device)
 
         if self._invert_style:
             torch.sub(1, self._style_image, out=self._style_image)

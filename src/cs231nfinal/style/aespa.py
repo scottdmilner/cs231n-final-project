@@ -14,7 +14,7 @@ from .base import DotDict, Stylizer, StylizerArgs
 
 
 class AespaStylizer(Stylizer):
-    def __init__(self, image_path: str, sargs: StylizerArgs) -> None:
+    def __init__(self, sargs: StylizerArgs) -> None:
         super().__init__(sargs)
         prepT = Compose(
             [
@@ -23,7 +23,7 @@ class AespaStylizer(Stylizer):
             ]
         )
 
-        self._style = size_arrange(prepT(Image.open(image_path)).to(self._device).unsqueeze(0))
+        self._style = size_arrange(prepT(Image.open(self._style_path)).to(self._device).unsqueeze(0))
 
         args = DotDict(
             {

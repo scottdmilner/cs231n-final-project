@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 import torch
 
+import matplotlib.pyplot as plt
 
 class DotDict(dict):
     __getattr__ = dict.get
@@ -28,7 +29,8 @@ class Stylizer(ABC):
     _invert_style: bool
     _style_path: str
 
-    def __init__(self, sargs: StylizerArgs) -> None:
+    def __init__(self, sargs: StylizerArgs, k: int = 1) -> None:
+        self.k = k
         self._res = sargs.resolution
         self._device = torch.device(sargs.device) if isinstance(sargs.device, int) or isinstance(sargs.device, str) else sargs.device
         self._invert_render = sargs.invert_render
@@ -49,14 +51,18 @@ class Stylizer(ABC):
             torch.sub(1, render_stack_channels, out=render_stack_channels)
 
         style = (
-            self.style(render_stack_channels.to(self._device)).cpu().mean(1, keepdim=True)
+            self.style(render_stack_channels.to(self._device)).mean(1, keepdim=True)
         )  # mean over color
 
         # style_mask = 1 - mask_stack
         # masked_style = style * style_mask + (1 - style_mask.to(torch.float32))
 
-        # plt.imshow(style[0].permute((1,2,0)).to(torch.float32))
-        # plt.show()
+        plt.imshow(style[0].permute((1,2,0)).to(torch.float32).cpu())
+        plt.show()
+        def exp_loss_fn(a: torch.Tensor, b: torch.Tensor, k: int) -> torch.Tensor:
+            return (torch.abs(a - b) ** (1 / k + 1)).mean() / (1 / k + 1)
+        print("hi", render_stack.shape, style.shape)
 
-        style_loss = loss_fn(render_stack, style)  # + tv_loss
+        # style_loss = loss_fn(render_stack, style)  # + tv_loss
+        style_loss = exp_loss_fn(render_stack.unsqueeze(1).to(self._device), style, self.k)
         return style_loss
