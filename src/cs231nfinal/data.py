@@ -50,9 +50,7 @@ class DataSet:
             cls._instances[dataset] = DataSet(dataset)
         return cls._instances[dataset]
 
-    def get_grid[GT: GridType](
-        self, grid_name: str, frame: int, *, type: type[GT]
-    ) -> GT:
+    def get_grid[GT: GridType](self, grid_name: str, frame: int, *, type: type[GT]) -> GT:
         frame_path = str(self.path / f"{self.dataset}.{frame}.vdb")
         return cast(GT, vdb.read(frame_path, grid_name))
 

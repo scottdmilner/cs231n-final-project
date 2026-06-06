@@ -495,9 +495,18 @@ index 9ced37e..dbb517a 100644
  		print(" ")
  		print(" GRAM Loss : " ,  np.mean(gram_loss), "  ", np.std(gram_loss))
 diff --git a/data/dataset_util.py b/data/dataset_util.py
-index 4208590..d80b9b7 100644
+index 4208590..c7bd052 100644
 --- a/data/dataset_util.py
 +++ b/data/dataset_util.py
+@@ -9,7 +9,7 @@ import imageio
+ import numpy as np
+ import scipy.misc
+ import matplotlib
+-matplotlib.use('Agg')
++# matplotlib.use('Agg')
+ import matplotlib.pyplot as plt
+ from PIL import Image
+ import natsort
 @@ -270,7 +270,7 @@ def _transformer(imsize=None, cropsize=None, cencrop=False):
  
  def imsave(tensor, path, nrow=4, npadding=0):

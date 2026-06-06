@@ -45,9 +45,7 @@ class GatysStylizer(Stylizer):
 
         self.vgg.to(self._device)
 
-        self.style_image = self._prep(ToTensor()(Image.open(image_path))).to(
-            self._device
-        )
+        self.style_image = self._prep(ToTensor()(Image.open(image_path))).to(self._device)
         if self._invert_style:
             torch.sub(1, self.style_image, out=self.style_image)
 
@@ -68,7 +66,9 @@ class GatysStylizer(Stylizer):
     def style(self, camera_views: torch.Tensor) -> torch.Tensor:
         pass
 
-    def loss(self, render_stack: torch.Tensor, mask_stack: torch.Tensor|None=None) -> torch.Tensor:
+    def loss(
+        self, render_stack: torch.Tensor, mask_stack: torch.Tensor | None = None
+    ) -> torch.Tensor:
         render_stack_channels = render_stack.unsqueeze(1).repeat((1, 3, 1, 1)).to(self._device)
         if self._invert_render:
             torch.sub(1, render_stack_channels, out=render_stack_channels)

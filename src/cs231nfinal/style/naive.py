@@ -7,6 +7,7 @@ from torchvision.transforms import Compose, Grayscale, Resize
 
 from .base import Stylizer, StylizerArgs
 
+
 class NaiveStylizer(Stylizer):
     _style_image: torch.Tensor
 
@@ -26,4 +27,3 @@ class NaiveStylizer(Stylizer):
     def style(self, camera_views: torch.Tensor) -> torch.Tensor:
         style_mask = camera_views < (1.0 - 1e-6)
         return self._style_image.detach().clone() * style_mask + (1 - style_mask.to(torch.float32))
-    
