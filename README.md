@@ -2,7 +2,9 @@
 - The optimization loop and hyperparameter tuning workspace can be found in `harness.ipynb`
 - Code that we wrote can be found in `src/`
 - Code from others (cited in our paper) can be found in `external/` alongside our custom patches for it.
+- Since StyleID is Stable Diffusion-based, in order for the StyleInjection method to work (1 of 5 methods), the Stable Diffusion weights need to be placed in the appropriate spot in `models`. Not included as they are 4GB.
 - To minimize upload size, we have only included a small fraction of our training data
+- All AI usage can be found as chat transcripts in `AI Chat Logs/`
 
 ## Dev setup
 
