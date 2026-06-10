@@ -3,6 +3,7 @@ from __future__ import annotations
 import torch
 
 import StyleID
+
 # from omegaconf import OmegaConf
 # from StyleID.ldm.models.diffusion.ddim import DDIMSampler
 import copy
@@ -27,8 +28,8 @@ from StyleID.diffusers_implementation.utils import normalize
 
 
 class InjectionStylizer2(Stylizer):
-    def __init__(self, sargs, invert: bool = False) -> None:
-        super().__init__(sargs)
+    def __init__(self, sargs, k: int, invert: bool = False) -> None:
+        super().__init__(sargs, k)
 
         self.ddim_steps = 8
         self.device = "mps"

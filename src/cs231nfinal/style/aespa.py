@@ -23,7 +23,9 @@ class AespaStylizer(Stylizer):
             ]
         )
 
-        self._style = size_arrange(prepT(Image.open(self._style_path)).to(self._device).unsqueeze(0))
+        self._style = size_arrange(
+            prepT(Image.open(self._style_path)).to(self._device).unsqueeze(0)
+        )
 
         args = DotDict(
             {
@@ -117,9 +119,7 @@ class AespaStylizer(Stylizer):
                 global_style_loss += self.model.calc_style_loss_centered_gram(
                     stylized_feat, style_feat, dim=True
                 )
-                content_loss += self.model.calc_content_loss(
-                    stylized_feat, content_feat, norm=True
-                )
+                content_loss += self.model.calc_content_loss(stylized_feat, content_feat, norm=True)
                 # if level == 4:
                 #     cx_loss += (
                 #         contextual_loss_v2(content_feat, recon_content_feat)
@@ -150,8 +150,8 @@ class AespaStylizer(Stylizer):
             dim=(1, 2),
         )
         total_loss = (
-            1.0*content_loss
-            + 1.0*identity_loss2
+            1.0 * content_loss
+            + 1.0 * identity_loss2
             + 0.2 * local_style_loss
             + 100.0 * torch.mean(attnded_style_loss * style_adaptive_alpha)
             + 10.0 * torch.mean(global_style_loss * (1 - style_adaptive_alpha))

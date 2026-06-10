@@ -15,7 +15,7 @@ def tv_volume_loss_isotropic(x: torch.Tensor, eps=1e-8):
         dim=-1,
     )
 
-    return torch.sqrt((grad_magnitude**2).sum(-1) + eps).sum()
+    return torch.sqrt((grad_magnitude**2).sum(-1) + eps).mean()
 
 
 def tv_image_loss_isotropic(x: torch.Tensor):
@@ -25,4 +25,4 @@ def tv_image_loss_isotropic(x: torch.Tensor):
     tv_x = torch.pow(diff_x, 2)
     tv_y = torch.pow(diff_y, 2)
 
-    return torch.sqrt(tv_x[:, 1:] + tv_y[1:, :]).sum()
+    return torch.sqrt(tv_x[:, 1:] + tv_y[1:, :]).mean()

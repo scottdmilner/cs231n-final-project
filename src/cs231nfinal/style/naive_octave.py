@@ -22,9 +22,9 @@ class NaiveStylizerOctave(Stylizer):
             ]
         )
         style_image1 = preT(read_image(self._style_path) / 255).squeeze().to(self._device)
-        style_image2 = preT(style_image1.tile((1,2,2)))
-        style_image4 = preT(style_image2.tile((1,2,2)))
-        
+        style_image2 = preT(style_image1.tile((1, 2, 2)))
+        style_image4 = preT(style_image2.tile((1, 2, 2)))
+
         self._style_image = (style_image1 + style_image2 + style_image4) / 3
 
         if self._invert_style:

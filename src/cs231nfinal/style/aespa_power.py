@@ -30,9 +30,9 @@ def highpass(img):
 
     # Block out the center low-frequencies by setting a circle of radius to 0
     y, x = np.ogrid[:rows, :cols]
-    center_distance = (x - ccol)**2 + (y - crow)**2
+    center_distance = (x - ccol) ** 2 + (y - crow) ** 2
 
-    gaussian_lpf = np.exp(-center_distance / (2 * (cutoff_radius ** 2)))
+    gaussian_lpf = np.exp(-center_distance / (2 * (cutoff_radius**2)))
     mask_gaussian = 1 - gaussian_lpf
 
     # 4. Apply the mask to the shifted FFT spectrum
@@ -41,15 +41,16 @@ def highpass(img):
     # 5. Inverse FFT to return to spatial domain (the image pixels)
     f_ishift = np.fft.ifftshift(f_shift_filtered)
     img_back = np.fft.ifft2(f_ishift)
-    # img_back = np.abs(img_back)  
+    # img_back = np.abs(img_back)
     img_back = np.real(img_back)
 
     return img_back
 
 
-
-class AespaStylizerSDS(Stylizer):
-    def __init__(self, sargs: StylizerArgs, k: int = 1, crop: tuple[int, int]|None = None) -> None:
+class AespaStylizerPower(Stylizer):
+    def __init__(
+        self, sargs: StylizerArgs, k: int = 1, crop: tuple[int, int] | None = None
+    ) -> None:
         super().__init__(sargs)
         self.k = k
         prepT = Compose(
@@ -60,7 +61,9 @@ class AespaStylizerSDS(Stylizer):
             ]
         )
 
-        self._style = size_arrange(prepT(Image.open(self._style_path))[:3,:,:].to(self._device).unsqueeze(0))
+        self._style = size_arrange(
+            prepT(Image.open(self._style_path))[:3, :, :].to(self._device).unsqueeze(0)
+        )
 
         args = DotDict(
             {
@@ -84,7 +87,9 @@ class AespaStylizerSDS(Stylizer):
     def style(self, camera_view: torch.Tensor) -> torch.Tensor:
         pass
 
-    def loss(self, render_stack: torch.Tensor, mask_stack: torch.Tensor | None = None) -> torch.Tensor:
+    def loss(
+        self, render_stack: torch.Tensor, mask_stack: torch.Tensor | None = None
+    ) -> torch.Tensor:
         self.model.network.decoder.load_state_dict(
             torch.load(
                 os.path.join(self.model.result_st_dir, "dec_model_.pth"), map_location=self._device
@@ -102,11 +107,11 @@ class AespaStylizerSDS(Stylizer):
 
         # styles = []
         # for render in render_stack:
-        render_stack_channels = render_stack.unsqueeze(1).repeat((1,3,1,1)).to(self._device)
+        render_stack_channels = render_stack.unsqueeze(1).repeat((1, 3, 1, 1)).to(self._device)
         style = self._style.repeat((render_stack_channels.shape[0], 1, 1, 1))
         content = size_arrange(render_stack_channels)
 
-        gray_content = functional.rgb_to_grayscale(content).repeat(1,3,1,1)
+        gray_content = functional.rgb_to_grayscale(content).repeat(1, 3, 1, 1)
 
         style_adaptive_alpha = (
             (
@@ -121,20 +126,21 @@ class AespaStylizerSDS(Stylizer):
             .to(self._device)
         )
 
-        stylization, _, _, _, _ = self.model.network(content, style, style_adaptive_alpha, gray_content, style)
+        stylization, _, _, _, _ = self.model.network(
+            content, style, style_adaptive_alpha, gray_content, style
+        )
 
         # hp_style = highpass(stylization.clone().detach().mean(dim=1).cpu().numpy())
         # hp_render = highpass(render_stack.clone().detach().cpu().numpy())
 
-
         # return torch.Tensor(hp_style - hp_render)
-            
 
-            # plt.imshow(img_back[0])
-            # plt.colorbar()
-            # plt.show()
+        # plt.imshow(img_back[0])
+        # plt.colorbar()
+        # plt.show()
         # loss_fn = torch.nn.MSELoss()
         def exp_loss_fn(a: torch.Tensor, b: torch.Tensor, k: int) -> torch.Tensor:
             return (torch.abs(a - b) ** (1 / k + 1)).mean() / (1 / k + 1)
+
         # return loss_fn(stylization, render_stack.unsqueeze(1).to(self._device))
         return exp_loss_fn(stylization, render_stack.unsqueeze(1).to(self._device), self.k)
