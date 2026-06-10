@@ -1,3 +1,9 @@
+# For TAs
+- The optimization loop and hyperparameter tuning workspace can be found in `harness.ipynb`
+- Code that we wrote can be found in `src/`
+- Code from others (cited in our paper) can be found in `external/` alongside our custom patches for it.
+- To minimize upload size, we have only included a small fraction of our training data
+
 ## Dev setup
 
 
